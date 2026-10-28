@@ -12,3 +12,4 @@
 | [0004](0004-stack.md) | стек: TypeScript, React Three Fiber, Supabase, Colyseus для прогулок |
 | [0005](0005-public-repository.md) | репозиторий публичный ради защиты ветки |
 | [0006](0006-ai-environment.md) | среда для ИИ: три слоя, CI как единственный жёсткий барьер |
+| [0007](0007-crowd-prototype-before-scene.md) | прототип толпы перед 3D-сценой, а не до всего среза |
