@@ -69,7 +69,7 @@
 
 Чистый TypeScript, без базы и браузера. Подходит товарищу через Codex.
 
-- `packages/shared`: типы (роль, размер, статус задачи), размер клетки сетки, `footprint(size)` — сколько клеток занимает объект, `isStreet(cell)` — правило улиц от координат клетки (ширина улицы 3 клетки, [0009](../decisions/0009-before-stage-1-assets.md)), `decayStage(dueAt, now, closedAt)` — ступень порчи.
+- `packages/shared`: типы (роль, размер, статус задачи), размер клетки сетки, `footprint(size)` — сколько клеток занимает объект, `isStreet(cell)` — правило улиц от координат клетки (улица 4 клетки: тротуар, две клетки дороги, тротуар, [0010](../decisions/0010-street-profile.md)), `decayStage(dueAt, now, closedAt)` — ступень порчи.
 - `packages/sim`: генератор случайных чисел от seed; жители ходят по улицам сетки; `simulate(seed, timeMs)` возвращает позиции.
 
 Тесты Vitest:
