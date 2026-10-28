@@ -5,6 +5,7 @@
 | [concept.md](concept.md) | концепция игры и трекера (GDD v0) |
 | [architecture.md](architecture.md) | архитектура и стек, расчёты лимитов Supabase |
 | [art-direction.md](art-direction.md) | арт-концепция: контракт мира, мудборд, палитра, требования к моделям |
+| [asset-list.md](asset-list.md) | список ассетов: модели, анимации, эффекты, значки, звук по этапам |
 | [ai-environment.md](ai-environment.md) | как устроена работа ИИ-агентов: правила, роли, MCP, скиллы, CI |
 | [decisions/](decisions/) | принятые решения, по одному файлу на решение |
 | [plans/](plans/) | планы задач больше одного файла |
