@@ -148,6 +148,33 @@ flowchart LR
 
 GitHub-сервер не ставим: агент на компьютере работает через git и `gh`, а у облачных тредов GitHub встроен.
 
+### Blender
+
+Добавлено 28 октября 2026, сравнение вариантов — в документе [«ИИ и Blender: MCP-серверы и скиллы»](https://claude.ai/artifact/29sZ4eGRsw7iB11gDd1sMN).
+
+Ставим официальный сервер Blender Lab. Он бесплатный (GPL-3.0), требует Blender 5.1 или новее \[Certain, [blender.org](https://www.blender.org/lab/mcp-server/)\], а у нас обоих 5.2.3 LTS. Этот же сервер Anthropic называет коннектором Blender для Claude \[Certain, [anthropic.com](https://www.anthropic.com/news/claude-for-creative-work)\]. Он даёт ИИ сводку сцены, скриншоты, выполнение Python в открытом Blender и поиск по документации Python API и руководству.
+
+Модели рисуем сами, поэтому ИИ в Blender нужен для проверок и рутины: имена узлов `stage_*`/`decay_*`/`tint_*`, опора, габариты кратно клетке, подсчёт полигонов, пакетный экспорт \[Likely\].
+
+Главный риск: сервер выполняет код от ИИ без защиты. Blender Lab сам советует виртуальную машину или компьютер без важных данных \[Certain, [blender.org](https://www.blender.org/lab/mcp-server/)\]. Поэтому:
+
+- вызовы инструментов Blender подтверждать вручную и не добавлять их в разрешённые;
+- держать `.blend` под git, чтобы откатить испорченный файл;
+- не открывать с подключённым ИИ чужие `.blend`: имена объектов в них могут содержать инструкции для ИИ \[Guessing\].
+
+В `.mcp.json` и `.codex/config.toml` сервер **не кладём**: он работает только при запущенном Blender у того, кто его поставил. Каждый ставит сам:
+
+1. Добавить в Blender дополнение: перетащить в окно Blender ссылку «Drag and Drop» со [страницы сервера](https://www.blender.org/lab/mcp-server/#addon) дважды (первый раз добавляется репозиторий Blender Lab, второй — само дополнение).
+2. Поставить [uv](https://docs.astral.sh/uv/) и скачать сервер: `git clone https://projects.blender.org/lab/blender_mcp.git` в удобную папку \[Certain, [инструкция](https://projects.blender.org/lab/blender_mcp/wiki/Setup)\].
+3. Подключить к агенту, указав путь к папке `mcp` внутри скачанного:
+   - Claude Code: `claude mcp add --transport stdio --scope user blender -- uv --directory <путь>/blender_mcp/mcp run blender-mcp` \[Certain: синтаксис из [документации](https://code.claude.com/docs/en/mcp)\]
+   - Codex: в личный `~/.codex/config.toml` раздел `[mcp_servers.blender]` с `command = "uv"` и `args = ["--directory", "<путь>/blender_mcp/mcp", "run", "blender-mcp"]`.
+4. Открыть Blender и спросить агента: «Сколько объектов в открытой сцене?»
+
+Blender из Steam обновляется сам, когда выходит новая версия \[Likely: Steam ставит последний выпуск, а другие версии выбираются во вкладке Betas — [документация Blender](https://developer.blender.org/docs/handbook/release_process/stores/steam/)\]. Чтобы у обоих была одна версия, выберите в Steam ветку 5.2 LTS: Библиотека → Blender → Свойства → Бета-версии.
+
+В облачных тредах проекта Blender недоступен: облако не видит Blender на вашем компьютере.
+
 ## Скиллы
 
 Скилл — папка с файлом SKILL.md. Агент сначала видит только его имя и описание и загружает целиком, когда задача подходит \[Certain, [Claude Code](https://code.claude.com/docs/en/skills), [ChatGPT Learn](https://learn.chatgpt.com/docs/build-skills)\]. Поэтому в скиллы уходит то, что нужно иногда, а в AGENTS.md остаётся то, что нужно всегда.
