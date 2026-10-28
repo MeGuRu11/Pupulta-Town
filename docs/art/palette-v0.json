@@ -1,0 +1,16 @@
+{
+  "version": 0,
+  "size": 256,
+  "swatch": 32,
+  "note": "Rows top to bottom. Ramp rows: 8 steps light to dark generated from base. Mixed rows: colors listed explicitly.",
+  "rows": [
+    { "name": "neutral", "explicit": ["#FFFFFF", "#E6E6E6", "#C8C8C8", "#A0A0A0", "#787878", "#505050", "#2E2E2E", "#141414"] },
+    { "name": "plaster", "ramp": "#EBD9B4" },
+    { "name": "roof", "ramp": "#C8553D" },
+    { "name": "wood", "ramp": "#9C6B3F" },
+    { "name": "foliage+water", "explicit": ["#B9DE8F", "#8CC461", "#6BA34A", "#4A7A33", "#A9DDF0", "#6CC0E0", "#3E95C2", "#2A6A91"] },
+    { "name": "skin", "explicit": ["#F8DCC3", "#F0C5A0", "#E2A980", "#C98E68", "#A86E4C", "#865238", "#633A28", "#E58C82"] },
+    { "name": "accent", "explicit": ["#E04B4B", "#F08A24", "#F2C531", "#3FB37F", "#3A7BD5", "#8E5CC2", "#E86FA5", "#2BB3B1"] },
+    { "name": "decay+emissive", "explicit": ["#7A6444", "#4E4030", "#2B2522", "#9A4A21", "#E53FD0", "#9BE83A", "#FF7A1A", "#FFD23D"] }
+  ]
+}
