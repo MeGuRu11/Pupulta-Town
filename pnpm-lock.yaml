@@ -65,6 +65,10 @@ importers:
         version: 6.0.3
 
   packages/sim:
+    dependencies:
+      '@pupulta/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       typescript:
         specifier: ~6.0.3
