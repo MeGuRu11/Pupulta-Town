@@ -8,7 +8,7 @@ export const CELL_SIZE_M = 2;
 /** Street width in cells: sidewalk, two road lanes, sidewalk. */
 export const STREET_CELLS = 4;
 
-/** Block side in cells between two streets. 12 is a multiple of both M (4) and L (6). */
+/** Block side in cells between two streets (decision 0011): a multiple of both M (4) and L (6). */
 export const BLOCK_CELLS = 12;
 
 /** The street and block pattern repeats every this many cells along each axis. */
