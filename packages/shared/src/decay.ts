@@ -11,9 +11,18 @@ export const DECAY_STAGES: ReadonlyArray<{ stage: Exclude<DecayStage, "none">; f
   { stage: "fire", fromDay: 21 },
 ];
 
+/**
+ * Decay days change at midnight in Moscow (decision 0012). Moscow has stayed on UTC+3
+ * all year since 2014, so a fixed offset is enough and needs no time zone database.
+ */
+export const DECAY_DAY_UTC_OFFSET_MINUTES = 180;
+
 const DAY_MS = 24 * 60 * 60 * 1000;
+const OFFSET_MS = DECAY_DAY_UTC_OFFSET_MINUTES * 60 * 1000;
 
 const utcDay = (timeMs: number): number => Math.floor(timeMs / DAY_MS);
+
+const localDay = (timeMs: number): number => utcDay(timeMs + OFFSET_MS);
 
 const parseDueOn = (dueOn: string): number => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dueOn);
@@ -30,12 +39,12 @@ const parseDueOn = (dueOn: string): number => {
  * @param nowMs current time, Unix milliseconds
  * @param closedAtMs when the task was closed, or null if it is open
  *
- * Calendar days are counted in UTC: the city has no time zone yet.
+ * Calendar days are counted in Moscow time, see DECAY_DAY_UTC_OFFSET_MINUTES.
  */
 export const decayStage = (dueOn: string, nowMs: number, closedAtMs: number | null): DecayStage => {
   const dueDay = parseDueOn(dueOn);
   if (closedAtMs !== null && closedAtMs <= nowMs) return "none";
-  const daysLate = utcDay(nowMs) - dueDay;
+  const daysLate = localDay(nowMs) - dueDay;
   let current: DecayStage = "none";
   for (const { stage, fromDay } of DECAY_STAGES) {
     if (daysLate >= fromDay) current = stage;
