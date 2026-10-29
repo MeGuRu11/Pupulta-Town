@@ -1,3 +1,4 @@
-// Types and constants shared by the client, the simulation and the database tests.
-// The first code arrives in PR 2 of the first slice.
-export {};
+// Types and rules shared by the client, the simulation and the database tests.
+export type * from "./types.ts";
+export * from "./grid.ts";
+export * from "./decay.ts";
