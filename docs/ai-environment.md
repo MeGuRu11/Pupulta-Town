@@ -190,6 +190,19 @@ Blender из Steam обновляется сам, когда выходит но
 
 Свои скиллы лежат в `.agents/skills`, скрипт копирует их в `.claude/skills`, и скрипт я проверил. В облачных тредах скиллы из репозитория не грузятся, их нужно включить в аккаунте \[Certain, [документация](https://code.claude.com/docs/en/claude-projects#get-skills-plugins-connectors-and-tools-into-threads)\]. Когда одобрите черновики, я предложу добавить их в аккаунт карточкой. Скиллы про симуляцию и сцену напишем вместе с первым срезом, когда будет что описывать.
 
+### Отложено: взять, когда наступит условие
+
+29 октября 2026 проверили 13 чужих репозиториев со скиллами, агентами и списками. Сейчас не ставим ни один: два из них (mattpocock/skills, garrytan/gstack) повторяют Superpowers своими TDD, ревью и планированием, и агент получил бы два набора противоречивых правил \[Likely\]. Полная таблица — в документе [«Оценка 13 репозиториев со скиллами»](https://claude.ai/artifact/4afuhcuYLvUPrh9RrAxK55).
+
+Агент, который видит наступившее условие, напоминает человеку о пункте. Ставит только с согласия человека.
+
+| Когда | Что взять | Как |
+| --- | --- | --- |
+| Начали React-интерфейс трекера | скиллы better-accessibility и interface-review из [jakubkrehel/skills](https://github.com/jakubkrehel/skills) (MIT, только Markdown, без хуков \[Certain\]) | в личные скиллы, не в репозиторий; проверить, что interface-review не спорит с субагентом `reviewer` |
+| Дорабатываем GDD, монеты, очки или рейтинг | [economy-designer.md](https://github.com/msitarzewski/agency-agents/blob/main/game-development/economy-designer.md) и [game-designer.md](https://github.com/msitarzewski/agency-agents/blob/main/game-development/game-designer.md) из agency-agents | прочитать как материал; главное правило оттуда — у каждой валюты есть источник и сток. Агентов не устанавливать |
+| Claude и Codex по-разному понимают термины (порча, этап, личная комната) | идея глоссария из скилла [domain-modeling](https://github.com/mattpocock/skills/blob/main/skills/engineering/domain-modeling/SKILL.md) | завести глоссарий в `docs/`; сам набор mattpocock не ставить |
+| Понадобился логотип | [kaankiziltug/logo-design-skill](https://github.com/kaankiziltug/logo-design-skill) | один раз, в личные скиллы |
+
 ## CI и защита ветки
 
 Сначала неудобное. Запретить слияние при красном CI можно только защитой ветки. Бесплатно она есть только у публичных репозиториев, для приватного нужен платный GitHub Pro или Team \[Certain, [документация GitHub](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)\]. В приватном репозитории на бесплатном тарифе «не сливать красное» останется правилом на словах.
