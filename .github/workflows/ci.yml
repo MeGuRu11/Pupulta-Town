@@ -48,9 +48,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
       - uses: supabase/setup-cli@v3
+        with:
+          version: '3.0.0'
+      - run: node scripts/generate-db-grid-tests.ts --check
       - run: supabase start
-      - run: supabase test db
+      - run: supabase test db --local
 
   e2e:
     needs: [detect, check]
@@ -68,6 +74,8 @@ jobs:
       # The end-to-end tests need the database once it exists (PR 3 of the first slice adds supabase/).
       - if: needs.detect.outputs.has_db == 'true'
         uses: supabase/setup-cli@v3
+        with:
+          version: '3.0.0'
       - if: needs.detect.outputs.has_db == 'true'
         run: supabase start
       - run: pnpm test:e2e
