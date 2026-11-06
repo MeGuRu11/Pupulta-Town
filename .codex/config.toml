@@ -1,13 +1,12 @@
-# MCP-серверы для ChatGPT и Codex (приложение, CLI и расширение IDE читают один конфиг).
-# Codex читает этот файл только в доверенном проекте (trusted project).
-# Замените DEV_PROJECT_REF на id dev-проекта Supabase. Production сюда не подключать.
+# MCP-серверы доверенного проекта Codex.
+# Supabase dev и локальный Blender подключаются в личной конфигурации.
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
 
 [mcp_servers.context7]
 url = "https://mcp.context7.com/mcp"
 
-[mcp_servers.supabase]
-url = "https://mcp.supabase.com/mcp?project_ref=DEV_PROJECT_REF&read_only=true&features=database,docs,debugging,development"
-
 [mcp_servers.playwright]
 command = "npx"
-args = ["@playwright/mcp@latest", "--headless", "--isolated"]
+args = ["-y", "@playwright/mcp@latest", "--headless", "--isolated"]

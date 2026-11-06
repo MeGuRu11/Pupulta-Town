@@ -1,0 +1,23 @@
+prefix_rule(
+    pattern = [["supabase", "supabase.exe"], "db", "push"],
+    decision = "forbidden",
+    justification = "Проверяйте миграции на локальном Supabase. Удалённую базу обновляет человек.",
+    match = ["supabase db push", "supabase db push --linked"],
+    not_match = ["supabase db reset --local", "supabase test db"],
+)
+
+prefix_rule(
+    pattern = [["git", "git.exe"], "push", ["--force", "-f", "--force-with-lease"]],
+    decision = "forbidden",
+    justification = "Отправляйте ветку обычным push и оформляйте изменения через pull request.",
+    match = ["git push --force origin main", "git push --force-with-lease"],
+    not_match = ["git push -u origin chore/codex-only"],
+)
+
+prefix_rule(
+    pattern = [["git", "git.exe"], "push", "origin", ["--force", "-f", "--force-with-lease"]],
+    decision = "forbidden",
+    justification = "Отправляйте ветку обычным push и оформляйте изменения через pull request.",
+    match = ["git push origin --force", "git push origin -f main"],
+    not_match = ["git push origin chore/codex-only"],
+)

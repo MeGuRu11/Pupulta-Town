@@ -6,5 +6,6 @@
 - Архитектура и стек: [docs/architecture.md](docs/architecture.md)
 - Принятые решения: [docs/decisions/](docs/decisions/)
 - Правила для ИИ-агентов: [AGENTS.md](AGENTS.md)
+- Рабочая среда и скиллы Codex: [docs/ai-environment.md](docs/ai-environment.md)
 
-Код пишут ИИ-агенты (Claude Code и Codex) по правилам из `AGENTS.md`. Каждое изменение идёт через pull request и проверку CI.
+Для работы с ИИ открой корень репозитория в Codex. Общие правила находятся в `AGENTS.md`, проектные скиллы — в `.agents/skills/`. Изменения проходят через pull request и проверки CI.
