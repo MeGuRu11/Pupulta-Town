@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/verify.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Проверяю изменения Pupulta Town"
+          }
+        ]
+      }
+    ]
+  }
+}
