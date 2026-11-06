@@ -358,7 +358,6 @@ end;
 $$;
 
 revoke all on schema private from public, anon, authenticated;
-grant usage on schema private to authenticated;
 revoke execute on all functions in schema private from public, anon, authenticated;
 grant execute on function private.city_role_for(uuid), private.shares_city(uuid) to authenticated;
 
