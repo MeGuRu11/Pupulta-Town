@@ -20,3 +20,7 @@ enabled = false
 enabled = true
 site_url = "http://localhost:5173"
 additional_redirect_urls = ["http://127.0.0.1:5173"]
+
+[analytics]
+# Windows named-pipe integration otherwise sends Vector to Docker TCP port 2375.
+enabled = false
