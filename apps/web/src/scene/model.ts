@@ -18,6 +18,12 @@ export interface SceneLot {
   rotation: number;
 }
 
+/** Wall-to-lot reserve and clear entrance width, both in metres. */
+export const plotDimensions = {
+  S: { setback: 0.3, entranceWidth: 1 },
+  M: { setback: 1.2, entranceWidth: 1.2 },
+} as const;
+
 const dayMs = 24 * 60 * 60 * 1000;
 const decayOffsetMs = DECAY_DAY_UTC_OFFSET_MINUTES * 60 * 1000;
 
