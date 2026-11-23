@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SRGBColorSpace } from "three";
 import type { DecayStage } from "@pupulta/shared";
-import type { SceneLot } from "./model.ts";
+import { plotDimensions, type SceneLot } from "./model.ts";
 import { Scenery, type Part } from "./Scenery.tsx";
 
 type Warning = Exclude<DecayStage, "none">;
@@ -41,13 +41,14 @@ function warningBadge(stage: Warning) {
   return texture;
 }
 
-function makeBuildings(lots: SceneLot[], origin: { x: number; z: number }) {
+export function makeBuildings(lots: SceneLot[], origin: { x: number; z: number }) {
   const boxes: Part[] = [],
     roofs: Part[] = [];
   const badges: { id: string; stage: Warning; x: number; y: number; z: number }[] = [];
   for (const lot of lots) {
-    const w = lot.width,
-      d = lot.depth,
+    const { setback, entranceWidth } = plotDimensions[lot.size];
+    const w = lot.width - 2 * setback,
+      d = lot.depth - 2 * setback,
       small = lot.size === "S";
     const x = lot.x - origin.x,
       z = lot.z - origin.z;
@@ -63,7 +64,7 @@ function makeBuildings(lots: SceneLot[], origin: { x: number; z: number }) {
       color: string,
       parts = boxes,
     ) => {
-      // dx/dz and the horizontal dimensions are fractions of the database footprint.
+      // All building parts are measured against the inset plinth, including the roof.
       const lx = dx * w,
         lz = dz * d;
       parts.push({
@@ -73,6 +74,23 @@ function makeBuildings(lots: SceneLot[], origin: { x: number; z: number }) {
         yaw: lot.rotation,
       });
     };
+    const finished = lot.stage === "complete";
+    const yardColor = finished ? (small ? "#bdafa0" : "#90ae78") : "#bc9d78";
+    boxes.push({
+      position: [x, 0.02, z],
+      scale: [lot.width - 0.1, 0.025, lot.depth - 0.1],
+      color: yardColor,
+    });
+    if (finished) {
+      const facade = d * 0.35;
+      const frontEdge = lot.depth / 2;
+      const middle = (facade + frontEdge) / 2;
+      boxes.push({
+        position: [x + middle * sin, 0.044, z + middle * cos],
+        scale: [entranceWidth, 0.026, frontEdge - facade],
+        color: small ? "#ebd6ae" : "#d3bf9e", yaw: lot.rotation,
+      });
+    }
     const faded = lot.decay === "none" ? "#d4b896" : warnings[lot.decay].color;
     add(0, 0.09, 0, 1, 0.16, 1, "#b8aa91");
     add(0, 0.23, 0, 0.85, 0.18, 0.81, lot.stage === "foundation" ? faded : "#b7aaa0");
@@ -108,7 +126,7 @@ function makeBuildings(lots: SceneLot[], origin: { x: number; z: number }) {
       add(0, 1.74, 0, 0.78, 2.9, 0.7, "#eed5a4");
       add(0, 3.92, 0, 0.92, 1.56, 0.86, "#b5604f", roofs);
       add(0.22, 4.39, -0.17, 0.09, 1.23, 0.1, "#925b4a");
-      add(0, 1.26, 0.355, 0.13, 1.88, 0.04, "#77645a");
+      add(0, 1.26, 0.355, 0.17, 1.88, 0.04, "#77645a");
       for (const side of [-1, 1]) {
         add(side * 0.245, 1.86, 0.362, 0.18, 1.08, 0.04, "#f7e9ce");
         add(side * 0.245, 1.86, 0.387, 0.137, 0.78, 0.018, "#648191");

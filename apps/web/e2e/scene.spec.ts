@@ -52,6 +52,33 @@ test("a seeded city draws task stages and decay, rotates and restores its map", 
   await expect.poll(async () => !(await canvas.screenshot()).equals(front)).toBe(true);
 });
 
+test("a row of homes and nearby kiosks changes its shared boundaries when construction ends", async ({ page }) => {
+  test.setTimeout(120_000);
+  await register(page, "Градостроитель", "/?seed=42&now=2099-01-22T09:00:00Z");
+  await createCity(page, "Тихий переулок");
+
+  // Three M lots fill the back row. The two S lots are then allocated side by side in front.
+  const homes = ["Дом с палисадником", "Соседний дом", "Новый дом"];
+  const kiosks = ["Булочная", "Цветочный киоск"];
+  for (const title of [...homes, ...kiosks]) {
+    await addTask(page, title, homes.includes(title) ? "M" : "S", "2099-02-01");
+    await page.getByRole("combobox", { name: `Статус задачи ${title}`, exact: true })
+      .selectOption(title === "Новый дом" ? "in_progress" : "done");
+  }
+
+  await page.getByText(/Постройки на карте/).click();
+  const objects = page.getByRole("list", { name: "Объекты на карте" });
+  await expect(objects.getByRole("listitem").filter({ hasText: "Готовый объект" })).toHaveCount(4);
+  const building = objects.getByRole("listitem").filter({ hasText: "Новый дом" });
+  await expect(building).toContainText("Стройка");
+  const canvas = page.getByTestId("city-scene").locator("canvas");
+  await expect(canvas).toHaveScreenshot("neighbouring-lots-under-construction.png");
+
+  await page.getByRole("combobox", { name: "Статус задачи Новый дом", exact: true }).selectOption("done");
+  await expect(building).toContainText("Готовый объект");
+  await expect(canvas).toHaveScreenshot("neighbouring-lots-complete.png");
+});
+
 test("the tracker remains usable without WebGL", async ({ page }) => {
   await page.addInitScript(() => {
     HTMLCanvasElement.prototype.getContext = new Proxy(HTMLCanvasElement.prototype.getContext, {

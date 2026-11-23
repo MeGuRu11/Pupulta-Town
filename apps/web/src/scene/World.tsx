@@ -5,6 +5,9 @@ import { simulate } from "@pupulta/sim";
 import { sceneOrigin, type SceneLot } from "./model.ts";
 import { BLOCK_PERIOD, STREET_WIDTH, Terrain } from "./Terrain.tsx";
 import { Buildings } from "./Buildings.tsx";
+import { makeLotBoundaries } from "./lotBoundaries.ts";
+import { boundaryParts } from "./boundaryParts.ts";
+import { Scenery } from "./Scenery.tsx";
 
 function CameraRig({ span, rotation }: { span: number; rotation: number }) {
   const { camera, size, invalidate } = useThree();
@@ -100,6 +103,7 @@ interface WorldProps extends ResidentsProps {
 }
 export default function World({ lots, blocks, seed, nowMs, fixedTime, rotation }: WorldProps) {
   const origin = useMemo(() => sceneOrigin(lots), [lots]);
+  const boundaries = useMemo(() => boundaryParts(makeLotBoundaries(lots), origin), [lots, origin]);
   const span = blocks * BLOCK_PERIOD + STREET_WIDTH;
   return (
     <>
@@ -109,6 +113,7 @@ export default function World({ lots, blocks, seed, nowMs, fixedTime, rotation }
       <CameraRig span={span} rotation={rotation} />
       <Terrain blocks={blocks} seed={seed} />
       <Buildings lots={lots} origin={origin} />
+      <Scenery parts={boundaries} />
       <Residents seed={seed} blocks={blocks} nowMs={nowMs} fixedTime={fixedTime} />
     </>
   );
