@@ -6,7 +6,7 @@ import type { City, CityData, ConnectionStatus, TaskDraft, TaskStatus } from "./
 type Client = SupabaseClient<Database>;
 type QueryError = { code?: string; message: string };
 
-function requireData<T>(result: { data: T | null; error: QueryError | null }): T {
+export function requireData<T>(result: { data: T | null; error: QueryError | null }): T {
   if (result.error) throw new TrackerError(errorMessage(result.error));
   if (result.data === null) throw new TrackerError("Сервер не вернул ожидаемые данные. Попробуйте ещё раз.");
   return result.data;
