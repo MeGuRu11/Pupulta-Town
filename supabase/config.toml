@@ -1,0 +1,26 @@
+# https://supabase.com/docs/guides/local-development/cli/config
+project_id = "pupulta-town"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+auto_expose_new_tables = false
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://127.0.0.1:5173"]
+
+[analytics]
+# Windows named-pipe integration otherwise sends Vector to Docker TCP port 2375.
+enabled = false

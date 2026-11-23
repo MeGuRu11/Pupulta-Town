@@ -27,13 +27,13 @@
 
 ## Команды
 
-Все команды запускаются из корня репозитория. `pnpm test:db` появится вместе с `supabase/` (PR 3 первого среза).
+Все команды запускаются из корня репозитория.
 
 - `pnpm install`
 - `pnpm dev` — клиент локально
 - `pnpm typecheck`, `pnpm lint`
 - `pnpm test` — модульные тесты (Vitest)
-- `pnpm test:db` — тесты базы (нужен Docker: `supabase start`, затем `supabase test db`)
+- `pnpm test:db` — тесты локальной базы после `supabase start`, нужен Docker и Supabase CLI
 - `pnpm test:e2e` — браузерные тесты (Playwright)
 - `pnpm check:assets` — проверка `.glb`
 - `pnpm verify` — typecheck, lint, test и check:assets разом. Запускай перед каждым коммитом.
