@@ -69,6 +69,12 @@ form { display: grid; gap: 15px; }
 .notice, .empty-state { padding: 14px 16px; background: #eeeadf; border-radius: 9px; }
 .notice-error { color: #752f33; background: #f9e5df; }
 .workspace { display: grid; grid-template-columns: minmax(208px, 260px) minmax(0, 1fr); align-items: start; gap: clamp(18px, 3vw, 44px); }
+.workspace-sidebar, .personal-room { display: grid; gap: 16px; min-width: 0; }
+.workspace-sections { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: #f0ede3; }
+.workspace-sections button { flex: 1 1 auto; min-height: 40px; padding: 6px 9px; border: 0; border-radius: 6px; background: transparent; font-weight: 650; }
+.workspace-sections button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.personal-task-form, .personal-task { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.personal-task h4 { align-self: center; }
 .sidebar, .city-panel, .workspace-main, .task-section, .task-form, .task-card { min-width: 0; }
 .sidebar { display: grid; gap: 16px; padding: 20px; background: #f0ede3; border: 1px solid var(--line); border-radius: 12px; }
 .sidebar-heading, .city-heading, .section-heading, .task-top, .header-account { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -129,6 +135,7 @@ label:has(input[type="checkbox"]) { display: inline-flex; align-items: center; g
   .sidebar { padding: 14px; }
 }
 @media (max-width: 650px) {
+  .personal-task-form, .personal-task { grid-template-columns: minmax(0, 1fr); }
   .auth-layout, .workspace { grid-template-columns: minmax(0, 1fr); }
   .auth-layout { margin-top: 0; }
   .welcome-panel { padding: 20px; }

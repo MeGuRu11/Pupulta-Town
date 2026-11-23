@@ -140,6 +140,43 @@ export type Database = {
                     }
                 ];
             };
+            "personal_tasks": {
+                Row: {
+                    "created_at": string;
+                    "id": string;
+                    "owner_id": string;
+                    "status": Database["public"]['Enums']["task_status"];
+                    "title": string;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "created_at"?: string;
+                    "id"?: string;
+                    "owner_id"?: string;
+                    "status"?: Database["public"]['Enums']["task_status"];
+                    "title": string;
+                };
+                Update: {
+                    "created_at"?: string;
+                    "id"?: string;
+                    "owner_id"?: string;
+                    "status"?: Database["public"]['Enums']["task_status"];
+                    "title"?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "personal_tasks_owner_id_fkey";
+                        columns: [
+                            "owner_id"
+                        ];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: [
+                            "id"
+                        ];
+                    }
+                ];
+            };
             "profiles": {
                 Row: {
                     "avatar": NonNullable<Json>;

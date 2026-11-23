@@ -2,11 +2,10 @@ import { useState } from "react";
 import { canChangeStatus, errorMessage, filterTasks, getTaskDecay } from "../tracker/model.ts";
 import type { CityData, CityMember, CityObject, TaskStatus, TeamTask } from "../tracker/types.ts";
 import { memberName } from "./TaskForm.tsx";
+import { statuses, statusNames, TaskStatusSelect } from "./TaskStatusSelect.tsx";
 
 export const stageNames = { foundation: "Фундамент", construction: "Стройка", complete: "Готовый объект" } satisfies Record<CityObject["stage"], string>;
 const stageIcons = { foundation: "🧱", construction: "🏗️", complete: "🏠" } satisfies Record<CityObject["stage"], string>;
-const statusNames = { todo: "К выполнению", in_progress: "В работе", done: "Готово" } satisfies Record<TaskStatus, string>;
-const statuses: TaskStatus[] = ["todo", "in_progress", "done"];
 export const decayNames = { none: "", dirt: "Грязь", graffiti: "Граффити", defect: "Дефект", repair: "Ремонт", fire: "Пожар" };
 
 function displayDueOn(value: string) { return value.split("-").reverse().join("."); }
@@ -40,12 +39,8 @@ function TaskCard({ task, data, member, nowMs, onStatus }: {
       <span>{assigned.length ? assigned.join(", ") : "Без исполнителя"}</span>
       {decay !== "none" && <span className="decay-pill">Просрочена · {decayNames[decay]}</span>}
     </div>
-    {canEdit ? <label className="task-status">Статус
-      <select aria-label={`Статус задачи ${task.title}`} value={task.status} disabled={pending}
-        onChange={(event) => { void change(event.target.value as TaskStatus); }}>
-        {statuses.map((value) => <option key={value} value={value}>{statusNames[value]}</option>)}
-      </select>
-    </label> : <span className="task-status">{statusNames[task.status]}</span>}
+    {canEdit ? <TaskStatusSelect title={task.title} status={task.status} disabled={pending}
+      onChange={value => { void change(value); }} /> : <span className="task-status">{statusNames[task.status]}</span>}
     {error && <p className="notice notice-error" role="alert">{error}</p>}
   </article>;
 }
