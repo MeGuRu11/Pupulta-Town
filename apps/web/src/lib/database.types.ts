@@ -45,6 +45,55 @@ export type Database = {
                     }
                 ];
             };
+            "city_events": {
+                Row: {
+                    "actor_name": string;
+                    "city_id": string;
+                    "id": string;
+                    "kind": Database["public"]['Enums']["city_event_kind"];
+                    "occurred_at": string;
+                    "previous_stage": Database["public"]['Enums']["object_stage"] | null;
+                    "repaired": boolean;
+                    "size": Database["public"]['Enums']["task_size"] | null;
+                    "task_title": string | null;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "actor_name": string;
+                    "city_id": string;
+                    "id"?: string;
+                    "kind": Database["public"]['Enums']["city_event_kind"];
+                    "occurred_at"?: string;
+                    "previous_stage"?: Database["public"]['Enums']["object_stage"] | null;
+                    "repaired"?: boolean;
+                    "size"?: Database["public"]['Enums']["task_size"] | null;
+                    "task_title"?: string | null;
+                };
+                Update: {
+                    "actor_name"?: string;
+                    "city_id"?: string;
+                    "id"?: string;
+                    "kind"?: Database["public"]['Enums']["city_event_kind"];
+                    "occurred_at"?: string;
+                    "previous_stage"?: Database["public"]['Enums']["object_stage"] | null;
+                    "repaired"?: boolean;
+                    "size"?: Database["public"]['Enums']["task_size"] | null;
+                    "task_title"?: string | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "city_events_city_id_fkey";
+                        columns: [
+                            "city_id"
+                        ];
+                        isOneToOne: false;
+                        referencedRelation: "cities";
+                        referencedColumns: [
+                            "id"
+                        ];
+                    }
+                ];
+            };
             "city_members": {
                 Row: {
                     "city_id": string;
@@ -332,6 +381,7 @@ export type Database = {
             };
         };
         Enums: {
+            "city_event_kind": "joined" | "foundation" | "construction" | "completed";
             "city_role": "leader" | "member" | "guest";
             "object_stage": "foundation" | "construction" | "complete";
             "task_size": "S" | "M" | "L";
@@ -394,7 +444,7 @@ export type CompositeTypes<PublicCompositeTypeNameOrOptions extends keyof Defaul
 export const Constants = {
     "public": {
         Enums: {
-            "city_role": ["leader", "member", "guest"], "object_stage": ["foundation", "construction", "complete"], "task_size": ["S", "M", "L"], "task_status": ["todo", "in_progress", "done"]
+            "city_event_kind": ["joined", "foundation", "construction", "completed"], "city_role": ["leader", "member", "guest"], "object_stage": ["foundation", "construction", "complete"], "task_size": ["S", "M", "L"], "task_status": ["todo", "in_progress", "done"]
         }
     }
 } as const;

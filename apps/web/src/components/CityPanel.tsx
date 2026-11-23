@@ -8,6 +8,7 @@ import type { City, CityMember, ConnectionStatus } from "../tracker/types.ts";
 import { memberName, TaskForm } from "./TaskForm.tsx";
 import { TaskList } from "./TaskList.tsx";
 import { CityScene } from "../scene/CityScene.tsx";
+import { CityEventFeed } from "./CityEventFeed.tsx";
 
 type Client = SupabaseClient<Database>;
 
@@ -63,8 +64,10 @@ export function CityPanel({ client, city, userId, onRefreshCities }: {
   const member = data?.members.find((item) => item.user_id === userId);
   const manager = canManageTasks(member?.role);
   const [refreshing, setRefreshing] = useState(false);
+  const [feedRefresh, setFeedRefresh] = useState(0);
   async function refreshWorkspace() {
     setRefreshing(true);
+    setFeedRefresh(value => value + 1);
     try {
       await Promise.all([refresh(), onRefreshCities()]);
     } finally {
@@ -98,6 +101,7 @@ export function CityPanel({ client, city, userId, onRefreshCities }: {
           <p className="stat"><strong><time dateTime={new Date(nowMs).toISOString()}>{cityTime.format(nowMs)}</time></strong><br />Время города (МСК)</p>
         </div>
       </section>
+      <CityEventFeed key={city.id} client={client} cityId={city.id} refreshKey={feedRefresh} />
       <details className="task-section">
         <summary>Участники города ({data.members.length})</summary>
         <ul>{data.members.map((item) => <li key={item.user_id}>
