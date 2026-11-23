@@ -141,5 +141,5 @@ export function useWorldClock() {
     const interval = window.setInterval(() => { setNowMs(Date.now()); }, 1000);
     return () => { window.clearInterval(interval); };
   }, [overrides.nowMs]);
-  return { nowMs, seedOverride: overrides.seed };
+  return { nowMs, seedOverride: overrides.seed, fixedTime: overrides.nowMs !== null };
 }

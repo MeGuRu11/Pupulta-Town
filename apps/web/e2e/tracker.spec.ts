@@ -1,24 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-
-async function register(page: Page, name: string, path = "/") {
-  const email = `town-${randomUUID()}@example.com`;
-  const password = `${randomUUID()}Aa1!`;
-  await page.goto(path);
-  await page.getByRole("button", { name: "Создать аккаунт", exact: true }).click();
-  await page.getByLabel("Имя", { exact: true }).fill(name);
-  await page.getByLabel("Почта", { exact: true }).fill(email);
-  await page.getByLabel("Пароль", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "Зарегистрироваться", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Выйти", exact: true })).toBeVisible();
-  return { email, password };
-}
-
-async function createCity(page: Page, name: string) {
-  await page.getByLabel("Название города", { exact: true }).fill(name);
-  await page.getByRole("button", { name: "Создать город", exact: true }).click();
-  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
-}
+import { createCity, register } from "./helpers.ts";
 
 test("registration, city creation, restored session and password sign-in", async ({ page }) => {
   const cityName = `Город ${randomUUID().slice(0, 8)}`;

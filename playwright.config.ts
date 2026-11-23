@@ -15,7 +15,10 @@ export default defineConfig({
     // The tracker tests sign in real local users and open invitation URLs.
     trace: "off",
   },
-  expect: { timeout: 10_000 },
+  expect: {
+    timeout: 10_000,
+    toHaveScreenshot: { pathTemplate: "{testDir}/snapshots/{testFileName}/{projectName}/{arg}{ext}" },
+  },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: `pnpm --filter @pupulta/web dev --port ${port} --strictPort`,
