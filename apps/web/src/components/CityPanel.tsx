@@ -7,6 +7,7 @@ import { canManageTasks, errorMessage } from "../tracker/model.ts";
 import type { City, CityMember, ConnectionStatus } from "../tracker/types.ts";
 import { memberName, TaskForm } from "./TaskForm.tsx";
 import { TaskList } from "./TaskList.tsx";
+import { CityScene } from "../scene/CityScene.tsx";
 
 type Client = SupabaseClient<Database>;
 
@@ -58,7 +59,7 @@ export function CityPanel({ client, city, userId, onRefreshCities }: {
   client: Client; city: City; userId: string; onRefreshCities: () => Promise<void>;
 }) {
   const { data, loading, connection, error, refresh } = useCityData(client, city.id);
-  const { nowMs, seedOverride } = useWorldClock();
+  const { nowMs, seedOverride, fixedTime } = useWorldClock();
   const member = data?.members.find((item) => item.user_id === userId);
   const manager = canManageTasks(member?.role);
   const [refreshing, setRefreshing] = useState(false);
@@ -90,6 +91,7 @@ export function CityPanel({ client, city, userId, onRefreshCities }: {
     {data && member && <>
       <section className="city-overview" aria-labelledby="city-plot-title" data-seed={seedOverride ?? city.seed}>
         <h3 id="city-plot-title">Участок города</h3>
+        <CityScene data={data} seed={seedOverride ?? city.seed} nowMs={nowMs} fixedTime={fixedTime} />
         <div className="city-stats">
           <p className="stat"><strong>{data.objects.length}</strong><br />Объекты</p>
           <p className="stat"><strong>{data.tasks.filter((task) => task.status === "done").length}</strong><br />Завершённые задачи</p>

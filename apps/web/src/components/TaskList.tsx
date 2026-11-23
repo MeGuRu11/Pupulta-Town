@@ -7,7 +7,7 @@ export const stageNames = { foundation: "Фундамент", construction: "С�
 const stageIcons = { foundation: "🧱", construction: "🏗️", complete: "🏠" } satisfies Record<CityObject["stage"], string>;
 const statusNames = { todo: "К выполнению", in_progress: "В работе", done: "Готово" } satisfies Record<TaskStatus, string>;
 const statuses: TaskStatus[] = ["todo", "in_progress", "done"];
-const decayNames = { none: "", dirt: "Грязь", graffiti: "Граффити", defect: "Дефект", repair: "Ремонт", fire: "Пожар" };
+export const decayNames = { none: "", dirt: "Грязь", graffiti: "Граффити", defect: "Дефект", repair: "Ремонт", fire: "Пожар" };
 
 function displayDueOn(value: string) { return value.split("-").reverse().join("."); }
 
