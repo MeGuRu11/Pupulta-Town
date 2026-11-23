@@ -113,6 +113,11 @@ form { display: grid; gap: 15px; }
 .stat { font-size: .84rem; }
 .stat strong { font-size: 1.65rem; line-height: 1; }
 .section-heading h3, .task-section h2, .task-form h3 { font-size: clamp(1.25rem, 2vw, 1.65rem); letter-spacing: -.03em; }
+.city-feed-list { list-style: none; margin: 0; padding: 0 6px 0 0; max-height: 16rem; overflow-y: auto; }
+.city-feed-list li { border-left: 3px solid #b6a0d2; padding: 5px 12px; margin-bottom: 6px; overflow-wrap: anywhere; }
+.city-feed-list li > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; }
+.city-feed-list time { font-size: .85rem; color: var(--muted); }
+.city-feed > button { justify-self: start; }
 .task-section, .invite-panel, .task-form { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: clamp(14px, 2vw, 24px); }
 .task-section { display: grid; gap: 16px; }
 .task-section summary { cursor: pointer; font-weight: 650; }
