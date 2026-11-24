@@ -38,20 +38,7 @@ export function AuthPanel({ client, initialError, hasInvite }: {
     finally { setPending(false); }
   }
 
-  return <div className="auth-layout">
-    <section className="welcome-panel">
-      <h2>Город вашей <em>команды</em></h2>
-      <p>Задачи становятся постройками. Назначайте исполнителей и следите, как фундамент превращается в готовый дом.</p>
-      <div className="town-illustration" aria-hidden="true">
-        <div className="town-ground" />
-        <div className="town-road" />
-        <div className="illustration-house house-small"><i /><i /></div>
-        <div className="illustration-house house-tall"><i /><i /><i /><i /></div>
-        <div className="illustration-house house-medium"><i /><i /></div>
-        <div className="illustration-tree tree-one" /><div className="illustration-tree tree-two" />
-      </div>
-    </section>
-    <section className="auth-card" aria-labelledby="auth-title">
+  return <section className="auth-card" aria-labelledby="auth-title">
       <h2 id="auth-title">{mode === "login" ? "Вход в город" : "Создать аккаунт"}</h2>
       <p className="muted">{hasInvite ? "Вы получили приглашение. После входа можно присоединиться к команде." : mode === "login" ? "Войдите с почтой, указанной при регистрации." : "Это имя увидят участники вашего города."}</p>
       <form onSubmit={(event) => { void submit(event); }}>
@@ -63,6 +50,5 @@ export function AuthPanel({ client, initialError, hasInvite }: {
         <button className="button button-primary button-wide" disabled={pending}>{pending ? "Подождите…" : mode === "login" ? "Войти" : "Зарегистрироваться"}<span aria-hidden="true">↗</span></button>
       </form>
       <div className="auth-switch"><span>{mode === "login" ? "Пока нет аккаунта?" : "Уже с нами?"}</span><button type="button" className="text-button" disabled={pending} onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); setMessage(""); }}>{mode === "login" ? "Создать аккаунт" : "Уже есть аккаунт? Войти"}</button></div>
-    </section>
-  </div>;
+  </section>;
 }

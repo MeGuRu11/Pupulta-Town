@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { createCity, register } from "./helpers.ts";
+import { createCity, openSection, register } from "./helpers.ts";
 
 test("registration, city creation, restored session and password sign-in", async ({ page }) => {
   const cityName = `Город ${randomUUID().slice(0, 8)}`;
@@ -9,8 +9,10 @@ test("registration, city creation, restored session and password sign-in", async
   await page.getByRole("button", { name: "Присоединиться", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveText("Вставьте код или ссылку-приглашение в город.");
   await createCity(page, cityName);
+  await openSection(page, "Задачи");
   await expect(page.getByText("В городе пока нет задач.", { exact: true })).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: "Аккаунт", exact: true }).click();
   await expect(page.getByRole("button", { name: "Выйти", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: cityName, exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Выйти", exact: true }).click();
@@ -21,15 +23,15 @@ test("registration, city creation, restored session and password sign-in", async
   await expect(page.getByRole("heading", { name: cityName, exact: true })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  const menu = page.getByRole("button", { name: "Мои города", exact: true });
+  const menu = page.getByRole("navigation", { name: "Меню города" }).getByRole("button", { name: "Города", exact: true });
   const navigation = page.getByRole("navigation", { name: "Выбор города", exact: true });
-  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await expect(menu).toHaveAttribute("aria-pressed", "false");
   await expect(navigation).toBeHidden();
   await menu.click();
-  await expect(menu).toHaveAttribute("aria-expanded", "true");
+  await expect(menu).toHaveAttribute("aria-pressed", "true");
   await navigation.getByRole("button", { name: cityName, exact: true }).click();
   await expect(navigation).toBeHidden();
-  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await expect(menu).toHaveAttribute("aria-pressed", "false");
 });
 
 test("invitation, role-aware S/M tasks and live status updates between two sessions", async ({ browser, baseURL }) => {
@@ -45,6 +47,7 @@ test("invitation, role-aware S/M tasks and live status updates between two sessi
     const memberName = `Строитель ${suffix}`;
     await register(leader, "Руководитель");
     await createCity(leader, cityName);
+    await openSection(leader, "Участники");
     await leader.getByRole("button", { name: "Пригласить", exact: true }).click();
     const invite = await leader.getByLabel("Ссылка-приглашение", { exact: true }).inputValue();
     expect(new URL(invite).origin).toBe(new URL(baseURL).origin);
@@ -52,13 +55,17 @@ test("invitation, role-aware S/M tasks and live status updates between two sessi
     await register(member, memberName, invite);
     await member.getByRole("button", { name: "Присоединиться", exact: true }).click();
     await expect(member.getByRole("heading", { name: cityName, exact: true })).toBeVisible();
+    await openSection(member, "Участники");
+    await expect(member.getByRole("button", { name: "Пригласить", exact: true })).toHaveCount(0);
+    await openSection(member, "Задачи");
     await expect(member.getByRole("heading", { name: "Задачи города", exact: true })).toBeVisible();
     await expect(member.getByRole("button", { name: "Создать задачу", exact: true })).toHaveCount(0);
-    await expect(member.getByRole("button", { name: "Пригласить", exact: true })).toHaveCount(0);
+    await expect(member.getByRole("navigation", { name: "Меню города" }).getByRole("button", { name: "Новая задача", exact: true })).toHaveCount(0);
     await leader.getByRole("button", { name: "Обновить", exact: true }).click();
 
     for (const size of ["S", "M"] as const) {
       const title = `${size === "S" ? "Ларёк" : "Дом"} ${suffix}`;
+      await openSection(leader, "Новая задача");
       await leader.getByLabel("Название задачи", { exact: true }).fill(title);
       await leader.getByLabel("Описание", { exact: true }).fill("Подготовить черновой объект города");
       await leader.getByRole("combobox", { name: "Размер", exact: true }).selectOption(size);
@@ -77,12 +84,16 @@ test("invitation, role-aware S/M tasks and live status updates between two sessi
     }
 
     await member.reload();
+    await openSection(member, "Задачи");
     await expect(member.getByRole("article", { name: `Дом ${suffix}`, exact: true })).toBeVisible();
     await expect(member.getByLabel(`Статус задачи Дом ${suffix}`, { exact: true })).toHaveValue("done");
     await createCity(leader, `Другой ${suffix}`);
+    await openSection(leader, "Задачи");
     await expect(leader.getByRole("article", { name: `Дом ${suffix}`, exact: true })).toHaveCount(0);
     await expect(member.getByRole("article", { name: `Дом ${suffix}`, exact: true })).toBeVisible();
+    await openSection(leader, "Города");
     await leader.getByRole("button", { name: cityName, exact: true }).click();
+    await openSection(leader, "Задачи");
     await expect(leader.getByLabel(`Статус задачи Дом ${suffix}`, { exact: true })).toHaveValue("done");
   } finally {
     await leaderContext.close();

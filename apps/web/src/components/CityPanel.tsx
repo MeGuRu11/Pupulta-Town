@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCityData, useWorldClock } from "../hooks/useTracker.ts";
 import type { Database } from "../lib/database.types.ts";
@@ -7,8 +7,11 @@ import { canManageTasks, errorMessage } from "../tracker/model.ts";
 import type { City, CityMember, ConnectionStatus } from "../tracker/types.ts";
 import { memberName, TaskForm } from "./TaskForm.tsx";
 import { TaskList } from "./TaskList.tsx";
-import { CityScene } from "../scene/CityScene.tsx";
+import { CityScene, SceneIndex } from "../scene/CityScene.tsx";
 import { CityEventFeed } from "./CityEventFeed.tsx";
+import { GameDock, GameWindow, emptyCity, navigate, type Panel } from "./GameHud.tsx";
+import { HudIcon } from "./HudIcon.tsx";
+import { PersonalRoom } from "./PersonalRoom.tsx";
 
 type Client = SupabaseClient<Database>;
 
@@ -56,66 +59,80 @@ function CityInvite({ client, cityId }: { client: Client; cityId: string }) {
   </div>;
 }
 
-export function CityPanel({ client, city, userId, onRefreshCities }: {
-  client: Client; city: City; userId: string; onRefreshCities: () => Promise<void>;
+export function CityPanel({ client, city, userId, panel, citiesMenu, accountMenu, onRefreshCities }: {
+  client: Client; city: City | undefined; userId: string; panel: Panel | null;
+  citiesMenu: ReactNode; accountMenu: ReactNode; onRefreshCities: () => Promise<void>;
 }) {
-  const { data, loading, connection, error, refresh } = useCityData(client, city.id);
+  const { data, loading, connection, error, refresh } = useCityData(client, city?.id);
   const { nowMs, seedOverride, fixedTime } = useWorldClock();
-  const member = data?.members.find((item) => item.user_id === userId);
+  const member = data?.members.find(item => item.user_id === userId);
   const manager = canManageTasks(member?.role);
   const [refreshing, setRefreshing] = useState(false);
-  const [feedRefresh, setFeedRefresh] = useState(0);
+  const seed = seedOverride ?? city?.seed ?? 0;
+  const close = useCallback(() => {
+    navigate("map");
+    const trigger = document.querySelector<HTMLButtonElement>(`button[data-panel="${panel}"]:not(:disabled)`);
+    trigger?.focus({ preventScroll: true });
+  }, [panel]);
+  const open = (next: Panel) => { if (panel === next) close(); else navigate(next); };
+
   async function refreshWorkspace() {
     setRefreshing(true);
-    setFeedRefresh(value => value + 1);
-    try {
-      await Promise.all([refresh(), onRefreshCities()]);
-    } finally {
-      setRefreshing(false);
+    try { await Promise.all([refresh(), onRefreshCities()]); }
+    finally { setRefreshing(false); }
+  }
+
+  function section() {
+    if (panel === "cities") return citiesMenu;
+    if (panel === "account") return accountMenu;
+    if (panel === "personal") return <PersonalRoom client={client} userId={userId} />;
+    if (!city) return <button className="button" onClick={() => navigate("cities")}>Выбрать город</button>;
+    if (!data || !member) return <div>
+      <p role="status">{error || (loading ? "Загружаем город…" : "Город недоступен.")}</p>
+      {error && <button className="button" onClick={() => { void refreshWorkspace(); }}>Повторить загрузку</button>}</div>;
+    switch (panel) {
+      case "members": return <>
+        <div className="city-actions"><button className="button button-quiet" disabled={refreshing}
+          onClick={() => { void refreshWorkspace(); }}>Обновить</button>
+          {manager && <CityInvite client={client} cityId={city.id} />}</div>
+        <p className="hud-connection" role="status">{connectionLabels[connection]}</p>
+        <ul className="hud-member-list">{data.members.map(item => <li key={item.user_id}>
+          <strong>{memberName(data, item.user_id)}</strong><span>{roleNames[item.role]}</span></li>)}</ul>
+      </>;
+      case "events": return <CityEventFeed client={client} cityId={city.id} refreshKey={0} />;
+      case "objects": return <SceneIndex data={data} nowMs={nowMs} />;
+      case "tasks": return <TaskList data={data} member={member} nowMs={nowMs} onStatus={async (id, status) => {
+        await setTaskStatus(client, id, status); await refresh();
+      }} />;
+      case "create": return manager ? null : <p>Задачи создаёт руководитель города.</p>;
+      default: return null;
     }
   }
 
-  return <section className="city-panel" aria-labelledby="current-city-title">
-    <div className="city-heading">
-      <div>
-        <h2 id="current-city-title">{city.name}</h2>
-        {member && <p className="muted">{roleNames[member.role]}</p>}
-      </div>
-      <div className="city-actions">
-        <button type="button" className="button button-quiet" disabled={refreshing} onClick={() => { void refreshWorkspace(); }}>
-          {refreshing ? "Обновляем…" : "Обновить"}
-        </button>
-        {manager && <CityInvite client={client} cityId={city.id} />}
-      </div>
+  return <main className="game-workspace">
+    <div className="game-world" data-seed={seed}>
+      <CityScene data={data ?? emptyCity} seed={seed} nowMs={nowMs} fixedTime={fixedTime} />
     </div>
-    <p className="connection" role="status">{connectionLabels[connection]}</p>
-    {loading && <p className="notice" role="status">Загружаем задачи и участников…</p>}
-    {error && <p className="notice notice-error" role="alert">{error}</p>}
-    {data && member && <>
-      <section className="city-overview" aria-labelledby="city-plot-title" data-seed={seedOverride ?? city.seed}>
-        <h3 id="city-plot-title">Участок города</h3>
-        <CityScene data={data} seed={seedOverride ?? city.seed} nowMs={nowMs} fixedTime={fixedTime} />
-        <div className="city-stats">
-          <p className="stat"><strong>{data.objects.length}</strong><br />Объекты</p>
-          <p className="stat"><strong>{data.tasks.filter((task) => task.status === "done").length}</strong><br />Завершённые задачи</p>
-          <p className="stat"><strong><time dateTime={new Date(nowMs).toISOString()}>{cityTime.format(nowMs)}</time></strong><br />Время города (МСК)</p>
-        </div>
-      </section>
-      <CityEventFeed key={city.id} client={client} cityId={city.id} refreshKey={feedRefresh} />
-      <details className="task-section">
-        <summary>Участники города ({data.members.length})</summary>
-        <ul>{data.members.map((item) => <li key={item.user_id}>
-          {memberName(data, item.user_id)} · {roleNames[item.role]}
-        </li>)}</ul>
-      </details>
-      <TaskList data={data} member={member} nowMs={nowMs} onStatus={async (id, status) => {
-        await setTaskStatus(client, id, status);
-        await refresh();
-      }} />
-      {manager && <TaskForm cityId={city.id} data={data} onCreate={async (draft) => {
+    <header className="game-top">
+      <div className="hud-city"><HudIcon name="city" /><div><small>Пупульта Town</small>
+        <h2>{city?.name ?? "Обзор города"}</h2></div></div>
+      {city && data && <div className="hud-stats" aria-label="Показатели города">
+        <div className="hud-stat"><HudIcon name="home" /><strong>{data.objects.length}</strong><span>Постройки</span></div>
+        <div className="hud-stat"><HudIcon name="members" /><strong>{data.members.length}</strong><span>Участники</span></div>
+        <div className="hud-stat"><HudIcon name="check" /><strong>{data.tasks.filter(task => task.status === "done").length}</strong><span>Завершено</span></div>
+        <div className="hud-stat"><HudIcon name="clock" /><strong>{cityTime.format(nowMs)}</strong><span>МСК</span></div>
+      </div>}
+      <button type="button" className="hud-account" data-panel="account" aria-label="Аккаунт" aria-haspopup="dialog"
+        aria-pressed={panel === "account"} title="Аккаунт" onClick={() => open("account")}><HudIcon name="account" /></button>
+    </header>
+    {city && error && !panel && <div className="hud-notice" role="alert">{error} <button onClick={() => { void refreshWorkspace(); }}>Обновить</button></div>}
+    <GameWindow panel={panel} onClose={close} taskForm={manager && city && data ?
+      <TaskForm cityId={city.id} data={data} onCreate={async draft => {
         await createTeamTask(client, draft);
         await refresh();
-      }} />}
-    </>}
-  </section>;
+      }} onCreated={() => navigate("tasks")} /> : null}>
+      {panel && section()}
+    </GameWindow>
+    <GameDock panel={panel} manager={manager} hasCity={!!city} onOpen={open} />
+  </main>;
 }

@@ -8,6 +8,8 @@ export default defineConfig({
   testDir: "apps/web/e2e",
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
+  // Each multiplayer scenario renders two cities. Keep the software GPU available for its latency check.
+  workers: 2,
   reporter: "list",
   use: {
     baseURL,

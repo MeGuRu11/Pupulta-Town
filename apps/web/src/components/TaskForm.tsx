@@ -8,8 +8,9 @@ export function memberName(data: CityData, userId: string) {
   return profile?.display_name.trim() || (member ? `Участник №${member.seat}` : "Бывший участник");
 }
 
-export function TaskForm({ cityId, data, onCreate }: {
+export function TaskForm({ cityId, data, onCreate, onCreated }: {
   cityId: string; data: CityData; onCreate: (draft: TaskDraft) => Promise<void>;
+  onCreated: () => void;
 }) {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -33,6 +34,7 @@ export function TaskForm({ cityId, data, onCreate }: {
     try {
       await onCreate(draft);
       form.reset();
+      if (form.isConnected && !form.closest("[hidden]")) onCreated();
     } catch (reason) {
       setError(errorMessage(reason));
     } finally {
@@ -40,7 +42,6 @@ export function TaskForm({ cityId, data, onCreate }: {
     }
   }
   return <form className="task-form" onSubmit={(event) => { void submit(event); }}>
-    <h3>Новая задача</h3>
     <fieldset className="form-grid" disabled={pending} aria-label="Параметры задачи">
       <label className="field-wide">Название задачи<input name="title" required placeholder="Например, нарисовать ларёк" /></label>
       <label className="field-wide">Описание<textarea name="description" rows={2} /></label>

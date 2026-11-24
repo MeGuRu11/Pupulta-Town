@@ -3,7 +3,7 @@ import { decayNames, stageNames } from "../components/TaskList.tsx";
 import type { CityData } from "../tracker/types.ts";
 import { makeSceneLots, sceneBlocks, sceneDecayTime } from "./model.ts";
 
-// Load the renderer only after the user opens a city.
+// Keep the renderer in a separate chunk so the HUD can open while the map loads.
 const Viewport = lazy(() => import("./Viewport.tsx"));
 
 class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -14,19 +14,23 @@ class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean
   override render() {
     if (!this.state.failed) return this.props.children;
     return <div className="scene-notice" role="status">
-      <p>Не удалось открыть 3D-карту. Постройки и их этапы доступны в списке под картой.</p>
+      <p>Не удалось открыть 3D-карту. Объекты и их этапы доступны в разделе «Постройки».</p>
       <button className="button button-quiet" onClick={() => this.setState({ failed: false })}>Повторить</button>
     </div>;
   }
 }
 
+function useSceneLots(data: CityData, nowMs: number) {
+  const decayTime = sceneDecayTime(data.tasks, nowMs);
+  return useMemo(() => makeSceneLots(data, decayTime), [data, decayTime]);
+}
+
 export function CityScene({ data, seed, nowMs, fixedTime }: {
   data: CityData; seed: number; nowMs: number; fixedTime: boolean;
 }) {
-  const decayTime = sceneDecayTime(data.tasks, nowMs);
-  const lots = useMemo(() => makeSceneLots(data, decayTime), [data, decayTime]);
+  const lots = useSceneLots(data, nowMs);
   const blocks = useMemo(() => sceneBlocks(lots), [lots]);
-  return <>
+  return (
     <div className="city-viewport" data-testid="city-scene" role="region" aria-label="3D-карта города">
       <SceneBoundary>
         <Suspense fallback={<p className="scene-notice" role="status">Загружаем 3D-карту…</p>}>
@@ -34,6 +38,12 @@ export function CityScene({ data, seed, nowMs, fixedTime }: {
         </Suspense>
       </SceneBoundary>
     </div>
+  );
+}
+
+export function SceneIndex({ data, nowMs }: { data: CityData; nowMs: number }) {
+  const lots = useSceneLots(data, nowMs);
+  return (
     <details className="scene-index">
       <summary>Постройки на карте ({lots.length})</summary>
       {lots.length ? <ul aria-label="Объекты на карте">
@@ -41,5 +51,5 @@ export function CityScene({ data, seed, nowMs, fixedTime }: {
           {lot.decay !== "none" && <> · {decayNames[lot.decay]}</>}</li>)}
       </ul> : <p>Здесь появятся постройки командных задач.</p>}
     </details>
-  </>;
+  );
 }
