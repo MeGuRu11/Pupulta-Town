@@ -1,10 +1,10 @@
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCityData, useWorldClock } from "../hooks/useTracker.ts";
 import type { Database } from "../lib/database.types.ts";
 import { createTeamTask, getCityInvite, setTaskStatus } from "../tracker/api.ts";
 import { canManageTasks, errorMessage } from "../tracker/model.ts";
-import type { City, CityMember, ConnectionStatus } from "../tracker/types.ts";
+import type { City, CityMember, ConnectionStatus, TaskStatus } from "../tracker/types.ts";
 import { memberName, TaskForm } from "./TaskForm.tsx";
 import { TaskList } from "./TaskList.tsx";
 import { CityScene, SceneIndex } from "../scene/CityScene.tsx";
@@ -68,13 +68,24 @@ export function CityPanel({ client, city, userId, panel, citiesMenu, accountMenu
   const member = data?.members.find(item => item.user_id === userId);
   const manager = canManageTasks(member?.role);
   const [refreshing, setRefreshing] = useState(false);
+  const opener = useRef<HTMLButtonElement | null>(null);
+  const [taskFilter, setTaskFilter] = useState<TaskStatus | "all">("all");
   const seed = seedOverride ?? city?.seed ?? 0;
   const close = useCallback(() => {
     navigate("map");
-    const trigger = document.querySelector<HTMLButtonElement>(`button[data-panel="${panel}"]:not(:disabled)`);
+    const selector = `button[data-panel="${panel}"]:not(:disabled)`;
+    const trigger = opener.current?.dataset.panel === panel && opener.current.isConnected ? opener.current :
+      document.querySelector<HTMLButtonElement>(`.game-dock ${selector}`) ?? document.querySelector<HTMLButtonElement>(selector);
     trigger?.focus({ preventScroll: true });
   }, [panel]);
-  const open = (next: Panel) => { if (panel === next) close(); else navigate(next); };
+  function open(next: Panel, trigger: HTMLButtonElement) {
+    opener.current = trigger;
+    if (panel === next) close();
+    else {
+      if (next === "tasks") setTaskFilter("all");
+      navigate(next);
+    }
+  }
 
   async function refreshWorkspace() {
     setRefreshing(true);
@@ -101,7 +112,7 @@ export function CityPanel({ client, city, userId, panel, citiesMenu, accountMenu
       </>;
       case "events": return <CityEventFeed client={client} cityId={city.id} refreshKey={0} />;
       case "objects": return <SceneIndex data={data} nowMs={nowMs} />;
-      case "tasks": return <TaskList data={data} member={member} nowMs={nowMs} onStatus={async (id, status) => {
+      case "tasks": return <TaskList data={data} member={member} nowMs={nowMs} status={taskFilter} onFilter={setTaskFilter} onStatus={async (id, status) => {
         await setTaskStatus(client, id, status); await refresh();
       }} />;
       case "create": return manager ? null : <p>Задачи создаёт руководитель города.</p>;
@@ -115,22 +126,26 @@ export function CityPanel({ client, city, userId, panel, citiesMenu, accountMenu
     </div>
     <header className="game-top">
       <div className="hud-city"><HudIcon name="city" /><div><small>Пупульта Town</small>
-        <h2>{city?.name ?? "Обзор города"}</h2></div></div>
-      {city && data && <div className="hud-stats" aria-label="Показатели города">
-        <div className="hud-stat"><HudIcon name="home" /><strong>{data.objects.length}</strong><span>Постройки</span></div>
-        <div className="hud-stat"><HudIcon name="members" /><strong>{data.members.length}</strong><span>Участники</span></div>
-        <div className="hud-stat"><HudIcon name="check" /><strong>{data.tasks.filter(task => task.status === "done").length}</strong><span>Завершено</span></div>
+        <h1>{city?.name ?? "Обзор города"}</h1></div></div>
+      {city && data && <div className="hud-stats" role="group" aria-label="Показатели города">
+        <button type="button" className="hud-stat" data-panel="objects" aria-label="Список построек" aria-haspopup="dialog"
+          onClick={event => open("objects", event.currentTarget)}><HudIcon name="objects" /><strong>{data.objects.length}</strong><span>Постройки</span></button>
+        <button type="button" className="hud-stat" data-panel="members" aria-label="Состав команды" aria-haspopup="dialog"
+          onClick={event => open("members", event.currentTarget)}><HudIcon name="members" /><strong>{data.members.length}</strong><span>Участники</span></button>
+        <button type="button" className="hud-stat" data-panel="tasks" aria-label="Завершённые задачи" aria-haspopup="dialog"
+          onClick={event => { opener.current = event.currentTarget; setTaskFilter("done"); navigate("tasks"); }}>
+          <HudIcon name="check" /><strong>{data.tasks.filter(task => task.status === "done").length}</strong><span>Завершено</span></button>
         <div className="hud-stat"><HudIcon name="clock" /><strong>{cityTime.format(nowMs)}</strong><span>МСК</span></div>
       </div>}
       <button type="button" className="hud-account" data-panel="account" aria-label="Аккаунт" aria-haspopup="dialog"
-        aria-pressed={panel === "account"} title="Аккаунт" onClick={() => open("account")}><HudIcon name="account" /></button>
+        aria-pressed={panel === "account"} title="Аккаунт" onClick={event => open("account", event.currentTarget)}><HudIcon name="account" /></button>
     </header>
     {city && error && !panel && <div className="hud-notice" role="alert">{error} <button onClick={() => { void refreshWorkspace(); }}>Обновить</button></div>}
     <GameWindow panel={panel} onClose={close} taskForm={manager && city && data ?
       <TaskForm cityId={city.id} data={data} onCreate={async draft => {
         await createTeamTask(client, draft);
         await refresh();
-      }} onCreated={() => navigate("tasks")} /> : null}>
+      }} onCreated={() => { setTaskFilter("all"); navigate("tasks"); }} /> : null}>
       {panel && section()}
     </GameWindow>
     <GameDock panel={panel} manager={manager} hasCity={!!city} onOpen={open} />

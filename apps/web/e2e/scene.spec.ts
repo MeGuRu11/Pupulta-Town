@@ -21,6 +21,30 @@ async function addTask(page: Page, title: string, size: "S" | "M", due: string) 
   await expect(page.getByRole("article", { name: title, exact: true })).toBeVisible();
 }
 
+test("the city shows an intermediate camera angle and respects reduced motion", async ({ page }) => {
+  await page.clock.install({ time: new Date("2030-01-01T10:00:00Z") });
+  await page.goto("/");
+  const canvas = page.getByTestId("city-scene").locator("canvas");
+  const right = page.getByRole("button", { name: "Повернуть вправо" });
+  const left = page.getByRole("button", { name: "Повернуть влево" });
+  await expect(right).toBeVisible();
+  await page.clock.pauseAt(new Date("2030-01-01T10:05:00Z"));
+  const capture = () => canvas.screenshot({ style });
+  const front = await capture();
+  await right.evaluate(button => (button as HTMLButtonElement).click());
+  await page.clock.runFor(160);
+  const turning = await capture();
+  await page.clock.runFor(1200);
+  const side = await capture();
+  expect(turning.equals(front)).toBe(false);
+  expect(turning.equals(side)).toBe(false);
+  expect(side.equals(front)).toBe(false);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await left.evaluate(button => (button as HTMLButtonElement).click());
+  await page.clock.runFor(64);
+  expect((await capture()).equals(front)).toBe(true);
+});
+
 test("a seeded city draws task stages and decay, rotates and restores its map", async ({ page }) => {
   test.setTimeout(120_000);
   // The fixed clock is later than the real closure timestamp written by the test database.

@@ -8,16 +8,35 @@ import { Buildings } from "./Buildings.tsx";
 import { makeLotBoundaries } from "./lotBoundaries.ts";
 import { boundaryParts } from "./boundaryParts.ts";
 import { Scenery } from "./Scenery.tsx";
-import { frameCityCamera } from "./camera.ts";
+import { advanceCameraTurn, frameCityCamera } from "./camera.ts";
 import { Outskirts } from "./Outskirts.tsx";
 
 function CameraRig({ span, rotation, zoom }: { span: number; rotation: number; zoom: number }) {
   const { camera, size, invalidate } = useThree();
+  const motion = useRef({ rotation, velocity: 0 });
+  const lastFrame = useRef(0);
+  const preference = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)"), []);
+  useLayoutEffect(() => {
+    const onChange = () => invalidate();
+    preference.addEventListener("change", onChange);
+    return () => preference.removeEventListener("change", onChange);
+  }, [invalidate, preference]);
   useLayoutEffect(() => {
     if (!(camera instanceof OrthographicCamera) || size.width <= 0 || size.height <= 0) return;
-    frameCityCamera(camera, size.width, size.height, span, rotation, zoom);
+    lastFrame.current = performance.now();
+    frameCityCamera(camera, size.width, size.height, span, motion.current.rotation, zoom);
     invalidate();
   }, [camera, size.width, size.height, span, rotation, zoom, invalidate]);
+  useFrame(() => {
+    if (!(camera instanceof OrthographicCamera) || !size.width || !size.height) return;
+    if (motion.current.rotation === rotation && motion.current.velocity === 0) return;
+    const time = performance.now();
+    motion.current = preference.matches ? { rotation, velocity: 0 } :
+      advanceCameraTurn(motion.current, rotation, (time - lastFrame.current) / 1000);
+    lastFrame.current = time;
+    frameCityCamera(camera, size.width, size.height, span, motion.current.rotation, zoom);
+    if (motion.current.rotation !== rotation || motion.current.velocity !== 0) invalidate();
+  });
   return null;
 }
 

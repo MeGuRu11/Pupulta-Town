@@ -30,9 +30,9 @@ export default function Viewport(props: {
     </Canvas>
     <div className="scene-controls" role="group" aria-label="Управление камерой">
       <button type="button" aria-label="Повернуть влево" title="Повернуть влево"
-        onClick={() => setRotation(r => (r + 3) % 4)}>↶</button>
+        onClick={() => setRotation(r => r - 1)}>↶</button>
       <button type="button" aria-label="Повернуть вправо" title="Повернуть вправо"
-        onClick={() => setRotation(r => (r + 1) % 4)}>↷</button>
+        onClick={() => setRotation(r => r + 1)}>↷</button>
       <button type="button" aria-label="Отдалить карту" title="Отдалить карту" disabled={zoom <= MIN_ZOOM}
         onClick={() => setZoom(current => limitZoom(current / 1.25))}>−</button>
       <button type="button" aria-label="Приблизить карту" title="Приблизить карту" disabled={zoom >= MAX_ZOOM}

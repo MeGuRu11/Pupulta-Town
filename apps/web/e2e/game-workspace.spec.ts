@@ -9,6 +9,13 @@ test("the city fills the viewport and stays mounted while its menus open", async
   const original = await scene.elementHandle();
   if (!original) throw new Error("Missing city canvas");
   const dock = page.getByRole("navigation", { name: "Меню города" });
+  const map = dock.getByRole("button", { name: "Карта", exact: true });
+  await expect(map).toHaveAttribute("aria-pressed", "true");
+  const completed = page.getByRole("button", { name: "Завершённые задачи" });
+  await completed.click();
+  await expect(page.getByRole("dialog").getByRole("combobox", { name: "Статус", exact: true })).toHaveValue("done");
+  await page.keyboard.press("Escape");
+  await expect(completed).toBeFocused();
   for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     await expect.poll(() => scene.boundingBox()).toEqual({ x: 0, y: 0, ...viewport });

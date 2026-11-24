@@ -12,7 +12,7 @@ const panelIcons = {
   cities: "city", tasks: "tasks", events: "events", members: "members", objects: "objects",
   personal: "personal", create: "add", account: "account",
 } as const;
-const sections = ["cities", "tasks", "events", "members", "objects", "personal", "create"] as const;
+const sections = ["tasks", "events", "objects", "members", "cities", "personal", "create"] as const;
 
 function readPanel(): Panel | "map" | null {
   const hash = window.location.hash.slice(1);
@@ -27,15 +27,18 @@ export function usePanelRoute() { return useSyncExternalStore(listen, readPanel)
 export function navigate(panel: Panel | "map") { window.location.hash = panel; }
 
 export function GameDock({ panel, hasCity, manager, onOpen }: {
-  panel: Panel | null; hasCity: boolean; manager: boolean; onOpen: (next: Panel) => void;
+  panel: Panel | null; hasCity: boolean; manager: boolean; onOpen: (next: Panel, trigger: HTMLButtonElement) => void;
 }) {
-  return <nav className="game-dock" aria-label="Меню города">{sections.map(key => {
+  return <nav className="game-dock" aria-label="Меню города">
+    <button type="button" className="hud-action" data-panel="map" aria-pressed={!panel}
+      onClick={() => navigate("map")}><HudIcon name="compass" /><span>Карта</span></button>
+    {sections.map(key => {
     if (key === "create" && !manager) return null;
     return <button type="button" key={key} data-panel={key} aria-pressed={panel === key}
       aria-haspopup="dialog" aria-controls={panel === key ? "game-window" : undefined}
       disabled={!hasCity && key !== "cities" && key !== "personal"}
       className={key === "create" ? "hud-action hud-action-primary" : "hud-action"}
-      onClick={() => onOpen(key)}>
+      onClick={event => onOpen(key, event.currentTarget)}>
       <HudIcon name={panelIcons[key]} /><span>{panelNames[key]}</span>
     </button>;
   })}</nav>;
@@ -58,7 +61,7 @@ export function GameWindow({ panel, children, taskForm, onClose }: {
     return () => window.removeEventListener("keydown", onKey);
   }, [panel, onClose]);
   return <section hidden={!panel} id="game-window" className="game-window" role="dialog" aria-labelledby="game-window-title">
-    <div className="game-window-bar"><h2 id="game-window-title">{panel && panelNames[panel]}</h2>
+    <div className="game-window-bar">{panel && <HudIcon name={panelIcons[panel]} />}<h2 id="game-window-title">{panel && panelNames[panel]}</h2>
       <button ref={close} type="button" aria-label="Закрыть окно" title="Закрыть (Esc)" className="hud-close" onClick={onClose}>
         <HudIcon name="close" /></button></div>
     {panel && !(panel === "create" && taskForm) && <div className="game-window-body" key={panel}>{children}</div>}

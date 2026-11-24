@@ -10,7 +10,7 @@ const title = "Дом команды";
 const deadlineMs = 2_000;
 const captureStyle = readFileSync(new URL("./map-capture.css", import.meta.url), "utf8");
 // At the fixed viewport and camera, the first M lot sits in this unobstructed part of the map.
-const firstLot = { x: 455, y: 210, width: 255, height: 245 };
+const firstLot = { x: 528, y: 240, width: 182, height: 215 };
 
 test.use({
   viewport,

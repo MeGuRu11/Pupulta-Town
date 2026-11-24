@@ -3,9 +3,10 @@ import { canChangeStatus, errorMessage, filterTasks, getTaskDecay } from "../tra
 import type { CityData, CityMember, CityObject, TaskStatus, TeamTask } from "../tracker/types.ts";
 import { memberName } from "./TaskForm.tsx";
 import { statuses, statusNames, TaskStatusSelect } from "./TaskStatusSelect.tsx";
+import { HudIcon, type HudIconName } from "./HudIcon.tsx";
 
 export const stageNames = { foundation: "Фундамент", construction: "Стройка", complete: "Готовый объект" } satisfies Record<CityObject["stage"], string>;
-const stageIcons = { foundation: "🧱", construction: "🏗️", complete: "🏠" } satisfies Record<CityObject["stage"], string>;
+const stageIcons = { foundation: "objects", construction: "city", complete: "home" } satisfies Record<CityObject["stage"], HudIconName>;
 export const decayNames = { none: "", dirt: "Грязь", graffiti: "Граффити", defect: "Дефект", repair: "Ремонт", fire: "Пожар" };
 
 function displayDueOn(value: string) { return value.split("-").reverse().join("."); }
@@ -31,7 +32,7 @@ function TaskCard({ task, data, member, nowMs, onStatus }: {
   }
   return <article className="task-card" aria-label={task.title}>
     <div className="task-top"><h4>{task.title}</h4>
-      {object && <span className={`stage-pill stage-${object.stage}`}><span aria-hidden="true">{stageIcons[object.stage]} </span>{task.size} · {stageNames[object.stage]}</span>}
+      {object && <span className={`stage-pill stage-${object.stage}`}><HudIcon name={stageIcons[object.stage]} />{task.size} · {stageNames[object.stage]}</span>}
     </div>
     {task.description && <p className="task-description">{task.description}</p>}
     <div className="task-meta">
@@ -45,11 +46,11 @@ function TaskCard({ task, data, member, nowMs, onStatus }: {
   </article>;
 }
 
-export function TaskList({ data, member, nowMs, onStatus }: {
+export function TaskList({ data, member, nowMs, status, onFilter, onStatus }: {
+  status: TaskStatus | "all"; onFilter: (status: TaskStatus | "all") => void;
   data: CityData; member: CityMember; nowMs: number; onStatus: (id: string, status: TaskStatus) => Promise<void>;
 }) {
   const [scope, setScope] = useState<"mine" | "all">("all");
-  const [status, setStatus] = useState<TaskStatus | "all">("all");
   const tasks = filterTasks(data.tasks, data.assignments, member.user_id, scope, status);
   return <section className="task-section" aria-labelledby="task-list-title">
     <div className="section-heading"><h3 id="task-list-title">Задачи города</h3><span className="count-pill">{tasks.length}</span></div>
@@ -57,7 +58,7 @@ export function TaskList({ data, member, nowMs, onStatus }: {
       <label>Показать<select value={scope} onChange={(event) => setScope(event.target.value as typeof scope)}>
         <option value="all">Все задачи</option><option value="mine">Назначенные мне</option>
       </select></label>
-      <label>Статус<select value={status} onChange={(event) => setStatus(event.target.value as typeof status)}>
+      <label>Статус<select value={status} onChange={(event) => onFilter(event.target.value as typeof status)}>
         <option value="all">Любой статус</option>
         {statuses.map((value) => <option key={value} value={value}>{statusNames[value]}</option>)}
       </select></label>
