@@ -1,8 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createCity, register } from "./helpers.ts";
+import { createCity, openSection, register } from "./helpers.ts";
 
 async function openRoom(page: Page) {
-  await page.getByRole("button", { name: "Личная комната", exact: true }).click();
+  await openSection(page, "Личная комната");
   await expect(page.getByRole("heading", { name: "Личная комната", level: 2 })).toBeVisible();
 }
 
@@ -56,8 +56,8 @@ test("personal tasks persist across city visits and stay private between teammat
   await leaderStatus.selectOption("in_progress");
   await expect(leaderStatus).toHaveValue("in_progress");
 
-  await leader.getByRole("button", { name: "Города", exact: true }).click();
   await createCity(leader, "Берёзовая роща");
+  await openSection(leader, "Участники");
   await leader.getByRole("button", { name: "Пригласить", exact: true }).click();
   const invite = await leader.getByLabel("Ссылка-приглашение", { exact: true }).inputValue();
   const memberContext = await browser.newContext({ baseURL });
@@ -73,8 +73,9 @@ test("personal tasks persist across city visits and stay private between teammat
     await openRoom(leader);
     await expect(leaderStatus).toHaveValue("in_progress");
     await expect(leader.getByText(memberTitle, { exact: true })).toHaveCount(0);
-    await leader.getByRole("button", { name: "Города", exact: true }).click();
+    await openSection(leader, "Задачи");
     await expect(leader.getByText("В городе пока нет задач.", { exact: true })).toBeVisible();
+    await openSection(leader, "Постройки");
     await expect(leader.getByText("Постройки на карте (0)", { exact: true })).toBeVisible();
   } finally {
     await memberContext.close();

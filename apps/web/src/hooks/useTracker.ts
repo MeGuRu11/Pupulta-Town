@@ -57,14 +57,20 @@ export function useCities(client: Client) {
     setError("");
     try {
       const next = await loadCities(client);
-      if (version !== request.current) return;
+      if (version !== request.current) return false;
+      if (preferredId && !next.some(city => city.id === preferredId)) {
+        setError("Город пока не найден в списке. Повторите загрузку.");
+        return false;
+      }
       setCities(next);
       setSelectedId((current) => {
         const preferred = preferredId ?? current;
         return next.some((city) => city.id === preferred) ? preferred : (next[0]?.id ?? "");
       });
+      return true;
     } catch (reason) {
       if (version === request.current) setError(errorMessage(reason));
+      return false;
     } finally {
       if (version === request.current) setLoading(false);
     }
@@ -78,7 +84,7 @@ export function useCities(client: Client) {
   return { cities, selectedId, select: setSelectedId, loading, error, refresh };
 }
 
-export function useCityData(client: Client, cityId: string) {
+export function useCityData(client: Client, cityId: string | undefined) {
   const [data, setData] = useState<CityData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -86,6 +92,7 @@ export function useCityData(client: Client, cityId: string) {
   const refreshRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
+    if (!cityId) return;
     let active = true;
     let request = 0;
     const refresh = async () => {

@@ -1,0 +1,3 @@
+/* Capture the rendered map independently of panels, player names and controls over the canvas. */
+body * { visibility: hidden !important; }
+[data-testid="city-scene"] canvas { visibility: visible !important; }

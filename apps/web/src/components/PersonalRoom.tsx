@@ -61,10 +61,9 @@ export function PersonalRoom({ client, userId }: { client: SupabaseClient<Databa
     }
   }
 
-  return <section className="personal-room" aria-labelledby="room-title">
+  return <section className="personal-room" aria-label="Личная комната">
     <header className="city-heading">
       <div>
-        <h2 id="room-title">Личная комната</h2>
         <p className="muted">Задачи без сроков. Их видите только вы.</p>
       </div>
       <button type="button" className="button button-quiet" onClick={reload}
