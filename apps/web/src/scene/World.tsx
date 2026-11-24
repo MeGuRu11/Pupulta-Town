@@ -24,9 +24,10 @@ function CameraRig({ span, rotation, zoom }: { span: number; rotation: number; z
   useLayoutEffect(() => {
     if (!(camera instanceof OrthographicCamera) || size.width <= 0 || size.height <= 0) return;
     lastFrame.current = performance.now();
+    if (preference.matches) motion.current = { rotation, velocity: 0 };
     frameCityCamera(camera, size.width, size.height, span, motion.current.rotation, zoom);
     invalidate();
-  }, [camera, size.width, size.height, span, rotation, zoom, invalidate]);
+  }, [camera, size.width, size.height, span, rotation, zoom, invalidate, preference]);
   useFrame(() => {
     if (!(camera instanceof OrthographicCamera) || !size.width || !size.height) return;
     if (motion.current.rotation === rotation && motion.current.velocity === 0) return;
