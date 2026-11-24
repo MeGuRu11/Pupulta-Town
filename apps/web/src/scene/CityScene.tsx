@@ -44,7 +44,7 @@ export function CityScene({ data, seed, nowMs, fixedTime }: {
 export function SceneIndex({ data, nowMs }: { data: CityData; nowMs: number }) {
   const lots = useSceneLots(data, nowMs);
   return (
-    <details className="scene-index">
+    <details className="scene-index" open>
       <summary>Постройки на карте ({lots.length})</summary>
       {lots.length ? <ul aria-label="Объекты на карте">
         {lots.map(lot => <li key={lot.id}>{lot.title} · {lot.size} · {stageNames[lot.stage]}

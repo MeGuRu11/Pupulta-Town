@@ -21,6 +21,42 @@ async function addTask(page: Page, title: string, size: "S" | "M", due: string) 
   await expect(page.getByRole("article", { name: title, exact: true })).toBeVisible();
 }
 
+test("the city shows an intermediate camera angle and respects reduced motion", async ({ page }) => {
+  await page.clock.install({ time: new Date("2030-01-01T10:00:00Z") });
+  await page.goto("/");
+  const canvas = page.getByTestId("city-scene").locator("canvas");
+  const right = page.getByRole("button", { name: "Повернуть вправо" });
+  const left = page.getByRole("button", { name: "Повернуть влево" });
+  await expect(right).toBeVisible();
+  // The controls can mount before the first WebGL frame reaches the compositor.
+  // Wait for terrain at the centre of the actual screenshot before storing it.
+  const capture = () => canvas.screenshot({ style });
+  await expect.poll(async () => page.evaluate(async png => {
+    const bitmap = await createImageBitmap(await (await fetch("data:image/png;base64," + png)).blob());
+    const sample = document.createElement("canvas").getContext("2d")!;
+    sample.drawImage(bitmap, bitmap.width / 2, bitmap.height / 2, 1, 1, 0, 0, 1, 1);
+    bitmap.close();
+    const [red, green, blue] = sample.getImageData(0, 0, 1, 1).data;
+    return green! > 90 && green! > blue! && red! > blue!;
+  }, (await capture()).toString("base64"))).toBe(true);
+  await page.clock.pauseAt(new Date("2030-01-01T10:05:00Z"));
+  await page.clock.runFor(64);
+  const front = await capture();
+  await right.evaluate(button => (button as HTMLButtonElement).click());
+  await page.clock.runFor(160);
+  const turning = await capture();
+  await page.clock.runFor(1200);
+  const side = await capture();
+  expect(turning.equals(front)).toBe(false);
+  expect(turning.equals(side)).toBe(false);
+  expect(side.equals(front)).toBe(false);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await left.evaluate(button => (button as HTMLButtonElement).click());
+  await page.clock.runFor(64);
+  // Browser time stays paused at 64 ms while the GPU presents that frame.
+  await expect.poll(async () => (await capture()).equals(front)).toBe(true);
+});
+
 test("a seeded city draws task stages and decay, rotates and restores its map", async ({ page }) => {
   test.setTimeout(120_000);
   // The fixed clock is later than the real closure timestamp written by the test database.

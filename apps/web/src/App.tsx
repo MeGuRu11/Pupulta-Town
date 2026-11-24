@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { emptyCity, navigate, usePanelRoute } from "./components/GameHud.tsx";
 import { HudIcon } from "./components/HudIcon.tsx";
@@ -28,10 +28,11 @@ function Workspace({ client, session }: { client: Client; session: Session }) {
   // Auth can establish a session immediately or when the confirmation email is opened.
   // Fill the blank profile created by the database, without overwriting a renamed profile.
   const candidateName: unknown = user.user_metadata.display_name;
+  const profileWrite = useRef<PromiseLike<void> | undefined>(undefined);
   useEffect(() => {
     if (typeof candidateName !== "string" || !candidateName.trim()) return;
     let current = true;
-    void client.from("profiles").update({ display_name: candidateName.trim() })
+    profileWrite.current = client.from("profiles").update({ display_name: candidateName.trim() })
       .eq("id", user.id).eq("display_name", "").then(({ error: profileError }) => {
         if (current && profileError) setAccountError("Не удалось сохранить имя профиля.");
       });
@@ -69,6 +70,8 @@ function Workspace({ client, session }: { client: Client; session: Session }) {
   }
 
   async function enterCity(token: string) {
+    // The database snapshots the member's name when writing the join event.
+    await profileWrite.current;
     const cityId = await joinCity(client, token);
     const url = new URL(window.location.href);
     url.searchParams.delete("invite");
