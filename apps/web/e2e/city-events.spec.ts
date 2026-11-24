@@ -2,6 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 import { createCity, openSection, register } from "./helpers.ts";
 
 const feed = (page: Page) => page.getByRole("region", { name: "Лента событий", exact: true });
+// Feed updates come from the real database. Freeze only the city clock so two
+// software-rendered views don't continuously repaint pedestrians during this test.
+const sceneClock = "2099-01-22T09:00:00Z";
 
 async function createHouse(page: Page, title: string, assignee?: string) {
   await openSection(page, "Новая задача");
@@ -15,18 +18,19 @@ async function createHouse(page: Page, title: string, assignee?: string) {
 
 test("both players see who built the house and the city keeps its history", async ({ page: leader, browser, baseURL }) => {
   if (!baseURL) throw new Error("City feed tests require the local tracker.");
-  await register(leader, "Аня");
+  await register(leader, "Аня", "/?" + new URLSearchParams({ now: sceneClock }));
   await createCity(leader, "Заречье");
   await openSection(leader, "События");
   await expect(feed(leader)).toBeVisible();
   await openSection(leader, "Участники");
   await leader.getByRole("button", { name: "Пригласить", exact: true }).click();
-  const invite = await leader.getByLabel("Ссылка-приглашение", { exact: true }).inputValue();
+  const invite = new URL(await leader.getByLabel("Ссылка-приглашение", { exact: true }).inputValue());
+  invite.searchParams.set("now", sceneClock);
   await openSection(leader, "События");
   const context = await browser.newContext({ baseURL });
   try {
     const member = await context.newPage();
-    await register(member, "Борис", invite);
+    await register(member, "Борис", invite.href);
     await member.getByRole("button", { name: "Присоединиться", exact: true }).click();
     await expect(feed(leader).getByRole("listitem")).toContainText(["Борис"]);
     await openSection(leader, "Участники");

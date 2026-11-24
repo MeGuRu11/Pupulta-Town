@@ -9,7 +9,7 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // Each multiplayer scenario renders two cities. Keep the software GPU available for its latency check.
-  workers: 2,
+  workers: process.env.CI ? 1 : 2,
   reporter: "list",
   use: {
     baseURL,
