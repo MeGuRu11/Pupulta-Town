@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
 import World from "./World.tsx";
 import type { SceneLot } from "./model.ts";
@@ -6,6 +6,8 @@ import { DEFAULT_ZOOM, limitZoom, MAX_ZOOM, MIN_ZOOM } from "./camera.ts";
 
 export default function Viewport(props: {
   lots: SceneLot[]; blocks: number; seed: number; nowMs: number; fixedTime: boolean;
+  children?: ReactNode;
+  onRotationSettled?: (rotation: number) => void;
 }) {
   const [rotation, setRotation] = useState(0);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);

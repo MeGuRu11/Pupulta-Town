@@ -6,7 +6,7 @@ import { makeSceneLots, sceneBlocks, sceneDecayTime } from "./model.ts";
 // Keep the renderer in a separate chunk so the HUD can open while the map loads.
 const Viewport = lazy(() => import("./Viewport.tsx"));
 
-class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+export class SceneBoundary extends Component<{ children: ReactNode; message?: string }, { failed: boolean }> {
   override state = { failed: false };
 
   static getDerivedStateFromError() { return { failed: true }; }
@@ -14,7 +14,7 @@ class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean
   override render() {
     if (!this.state.failed) return this.props.children;
     return <div className="scene-notice" role="status">
-      <p>Не удалось открыть 3D-карту. Объекты и их этапы доступны в разделе «Постройки».</p>
+      <p>{this.props.message ?? "Не удалось открыть 3D-карту. Объекты и их этапы доступны в разделе «Постройки»."}</p>
       <button className="button button-quiet" onClick={() => this.setState({ failed: false })}>Повторить</button>
     </div>;
   }
