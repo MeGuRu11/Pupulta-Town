@@ -18,6 +18,8 @@
 
 При работающем локальном Supabase запустите `pnpm dev` и откройте [трекер](http://localhost:5173). [Подготовка окружения и проверка игры в двух окнах](docs/local-development.md#запуск-командного-трекера).
 
+[Прототип башни L](http://localhost:5173/prototype/tower) открывается после `pnpm dev` без входа и подключения к Supabase. В тестовом городе можно менять этап стройки, этажность и порчу, поворачивать карту и смотреть, какие участки загораживает башня. [Условия и результаты замера](docs/plans/2026-11-24-modular-tower.md).
+
 - Концепция: [docs/concept.md](docs/concept.md)
 - Архитектура и стек: [docs/architecture.md](docs/architecture.md)
 - Принятые решения: [docs/decisions/](docs/decisions/)

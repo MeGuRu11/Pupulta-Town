@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Color, InstancedMesh, Object3D, OrthographicCamera } from "three";
 import { simulate } from "@pupulta/sim";
@@ -11,7 +11,14 @@ import { Scenery } from "./Scenery.tsx";
 import { advanceCameraTurn, frameCityCamera } from "./camera.ts";
 import { Outskirts } from "./Outskirts.tsx";
 
-function CameraRig({ span, rotation, zoom }: { span: number; rotation: number; zoom: number }) {
+interface CameraRigProps {
+  span: number;
+  rotation: number;
+  zoom: number;
+  onRotationSettled?: ((rotation: number) => void) | undefined;
+}
+
+function CameraRig({ span, rotation, zoom, onRotationSettled }: CameraRigProps) {
   const { camera, size, invalidate } = useThree();
   const motion = useRef({ rotation, velocity: 0 });
   const lastFrame = useRef(0);
@@ -24,10 +31,13 @@ function CameraRig({ span, rotation, zoom }: { span: number; rotation: number; z
   useLayoutEffect(() => {
     if (!(camera instanceof OrthographicCamera) || size.width <= 0 || size.height <= 0) return;
     lastFrame.current = performance.now();
-    if (preference.matches) motion.current = { rotation, velocity: 0 };
+    if (preference.matches) {
+      motion.current = { rotation, velocity: 0 };
+      onRotationSettled?.(rotation);
+    }
     frameCityCamera(camera, size.width, size.height, span, motion.current.rotation, zoom);
     invalidate();
-  }, [camera, size.width, size.height, span, rotation, zoom, invalidate, preference]);
+  }, [camera, size.width, size.height, span, rotation, zoom, invalidate, preference, onRotationSettled]);
   useFrame(() => {
     if (!(camera instanceof OrthographicCamera) || !size.width || !size.height) return;
     if (motion.current.rotation === rotation && motion.current.velocity === 0) return;
@@ -37,6 +47,7 @@ function CameraRig({ span, rotation, zoom }: { span: number; rotation: number; z
     lastFrame.current = time;
     frameCityCamera(camera, size.width, size.height, span, motion.current.rotation, zoom);
     if (motion.current.rotation !== rotation || motion.current.velocity !== 0) invalidate();
+    else onRotationSettled?.(rotation);
   });
   return null;
 }
@@ -97,12 +108,11 @@ function Residents({ seed, blocks, nowMs, fixedTime }: ResidentsProps) {
   );
 }
 
-interface WorldProps extends ResidentsProps {
+interface WorldProps extends ResidentsProps, Omit<CameraRigProps, "span"> {
   lots: SceneLot[];
-  rotation: number;
-  zoom: number;
+  children?: ReactNode;
 }
-export default function World({ lots, blocks, seed, nowMs, fixedTime, rotation, zoom }: WorldProps) {
+export default function World({ lots, blocks, seed, nowMs, fixedTime, rotation, zoom, onRotationSettled, children }: WorldProps) {
   const origin = useMemo(() => sceneOrigin(lots), [lots]);
   const boundaries = useMemo(() => boundaryParts(makeLotBoundaries(lots), origin), [lots, origin]);
   const span = blocks * BLOCK_PERIOD + STREET_WIDTH;
@@ -111,11 +121,12 @@ export default function World({ lots, blocks, seed, nowMs, fixedTime, rotation, 
       <color attach="background" args={["#151c1b"]} />
       <hemisphereLight args={["#f6eacb", "#9c9592", 1.35]} />
       <directionalLight position={[-20, 44, 18]} intensity={2.1} color="#ffe6b5" />
-      <CameraRig span={span} rotation={rotation} zoom={zoom} />
+      <CameraRig span={span} rotation={rotation} zoom={zoom} onRotationSettled={onRotationSettled} />
       <Outskirts span={span} seed={seed} />
       <Terrain blocks={blocks} seed={seed} />
       <Buildings lots={lots} origin={origin} />
       <Scenery parts={boundaries} />
+      {children}
       <Residents seed={seed} blocks={blocks} nowMs={nowMs} fixedTime={fixedTime} />
     </>
   );
